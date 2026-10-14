@@ -20,17 +20,14 @@ function App() {
 
   return (
     <div class="wy-app">
-      <Header></Header>
-      <main class="wy-main">
-        <Router>
+      <Router root={(props) => <><Header></Header><main class="wy-main">{props.children}</main></>}>
           <Route path="/" component={Body}/>
           <Route path="/config" component={Config}/>
           <Route path="/history" component={History}/>
           <Route path="/host/:id" component={HostPage}/>
           <Route path="/internet" component={Internet}/>
           <Route path="/security" component={Security}/>
-        </Router>
-      </main>
+      </Router>
     </div>
   )
 }

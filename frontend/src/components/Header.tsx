@@ -1,6 +1,7 @@
 import { createSignal, For } from "solid-js";
 import { appConfig, setAppConfig, themes } from "../functions/exports";
 import { apiGetConfig } from "../functions/api";
+import { useLocation } from "@solidjs/router";
 
 const links = [
   { href: "/", label: "Hosts", icon: "bi-hdd-stack" },
@@ -35,9 +36,11 @@ function Header() {
   setCurrentTheme();
 
   // Host pages belong to Hosts; everything else matches by first path segment.
-  const path = window.location.pathname;
-  const current = (href: string) =>
-    href === "/" ? (path === "/" || path.startsWith("/host/")) : path.startsWith(href.slice(0, -1));
+  const loc = useLocation();
+  const current = (href: string) => {
+    const path = loc.pathname;
+    return href === "/" ? (path === "/" || path.startsWith("/host/")) : path.startsWith(href.slice(0, -1));
+  };
 
   return (
     <>
