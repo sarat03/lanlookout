@@ -26,7 +26,8 @@ export const hostTypes: Record<string, string> = {
 	phone: "bi-phone", tablet: "bi-tablet", laptop: "bi-laptop", desktop: "bi-pc-display",
 	tv: "bi-tv", speaker: "bi-speaker", console: "bi-controller", watch: "bi-smartwatch",
 	printer: "bi-printer", camera: "bi-camera-video", router: "bi-router", server: "bi-hdd-rack",
-	iot: "bi-cpu", other: "bi-question-circle",
+	plug: "bi-plug", thermostat: "bi-thermometer-half", fan: "bi-fan", light: "bi-lightbulb",
+	car: "bi-car-front", iot: "bi-cpu", other: "bi-question-circle",
 };
 
 export const tagList = (h: Host) => (h.Tags || "").split(",").map(t => t.trim()).filter(Boolean);
