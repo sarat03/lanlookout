@@ -1,0 +1,6 @@
+#!/sbin/openrc-run
+name="LanLookout"
+description="Lightweight network IP scanner with web GUI"
+command="/usr/bin/lanlookout"
+command_background=true
+pidfile="/run/lanlookout.pid"

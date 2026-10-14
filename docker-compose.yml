@@ -1,0 +1,15 @@
+services:
+  lanlookout:
+    image: ghcr.io/sarat03/lanlookout:latest
+    network_mode: host          # required: ARP scan, mDNS/UPnP/DHCP listening
+    restart: unless-stopped
+    volumes:
+      - ~/.dockerdata/lanlookout:/data/lanlookout
+    environment:
+      TZ: Europe/London         # your timezone, for correct times and quiet hours
+      IFACES: "eth0"            # interface(s) to scan, space separated
+      # PORT: "8840"
+      # SHOUTRRR_URL: ""        # notifications, see README
+      # DNS_TYPE: "pihole"      # per-device DNS: pihole or adguard
+      # DNS_URL: "http://192.168.1.2"
+      # DNS_PASS: ""

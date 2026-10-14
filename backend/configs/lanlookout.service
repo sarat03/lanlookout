@@ -1,0 +1,12 @@
+[Unit]
+Description=lanlookout
+Documentation=https://github.com/sarat03/lanlookout
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/lanlookout -d /etc/lanlookout/
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

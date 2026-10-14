@@ -1,0 +1,1059 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Home network monitor: devices, internet health, security and DNS",
+        "title": "LanLookout API",
+        "contact": {
+            "url": "https://github.com/sarat03/lanlookout"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "0.1"
+    },
+    "basePath": "/api/",
+    "paths": {
+        "/all": {
+            "get": {
+                "description": "Retrieve all hosts from the database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "hosts"
+                ],
+                "summary": "Get all hosts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Host"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/config": {
+            "get": {
+                "description": "Returns the current configuration used by the app",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Get application configuration",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Conf"
+                        }
+                    }
+                }
+            }
+        },
+        "/dns/{ip}": {
+            "get": {
+                "description": "From Pi-hole / AdGuard Home query logs",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dns"
+                ],
+                "summary": "Top domains of a device",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device IP",
+                        "name": "ip",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Days back, 1 = today (default 1)",
+                        "name": "days",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/edit/{id}/{name}/{known}": {
+            "get": {
+                "description": "Update a host's name and optionally toggle its \"known\" status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "hosts"
+                ],
+                "summary": "Edit host",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Host ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "New name for the host",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pass 'toggle' to flip the known/unknown status",
+                        "name": "known",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/events": {
+            "get": {
+                "description": "Alerts (new device, offline, online, IP change), newest first",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Recent events",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Max events (default 100)",
+                        "name": "num",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Event"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/history": {
+            "get": {
+                "description": "Retrieve the complete history of all hosts. Not recommended, the output can be a lot",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "history"
+                ],
+                "summary": "Get full history",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Host"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/history/{mac}": {
+            "get": {
+                "description": "Retrieve the latest history entries for a specific host by MAC address",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "history"
+                ],
+                "summary": "Get history by MAC",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "MAC address of the host",
+                        "name": "mac",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of history entries to return",
+                        "name": "num",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Host"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/history/{mac}/{date}": {
+            "get": {
+                "description": "Retrieve history for a specific host on a given date\nThe date format is flexible and can be:\n- Year only: `2025`\n- Year + month: `2025-09`\n- Full date: `2025-09-06`\n- Full timestamp: `2025-09-06 00:58:26`",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "history"
+                ],
+                "summary": "Get history by date",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "MAC address of the host",
+                        "name": "mac",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date filter (supports YYYY, YYYY-MM, YYYY-MM-DD, YYYY-MM-DD HH:mm:ss)",
+                        "name": "date",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Host"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/host/add/{mac}": {
+            "get": {
+                "description": "Add host by MAC, with optional Name, IP, Hardware\nReturns `models.Host` with this MAC form DB, either just added or existing",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "hosts"
+                ],
+                "summary": "Add host manually",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Host MAC",
+                        "name": "mac",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "IP",
+                        "name": "ip",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Hardware",
+                        "name": "hw",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Host"
+                        }
+                    }
+                }
+            }
+        },
+        "/host/del/{id}": {
+            "get": {
+                "description": "Remove a host from the database by its unique ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "hosts"
+                ],
+                "summary": "Delete host",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Host ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/host/meta/{id}": {
+            "get": {
+                "description": "Only the query params passed are changed",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "hosts"
+                ],
+                "summary": "Edit host watch, type and tags",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Host ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "1 = notify when it goes offline or comes back, 0 = don't",
+                        "name": "watch",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Device type, e.g. phone",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma separated tags",
+                        "name": "tags",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Host"
+                        }
+                    }
+                }
+            }
+        },
+        "/host/{id}": {
+            "get": {
+                "description": "Retrieve detailed information about a host by its unique ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "hosts"
+                ],
+                "summary": "Get host by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Host ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Host"
+                        }
+                    }
+                }
+            }
+        },
+        "/known/all": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "hosts"
+                ],
+                "summary": "Mark all hosts as known",
+                "responses": {
+                    "200": {
+                        "description": "Number of hosts changed",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "/net/speedtest": {
+            "get": {
+                "description": "Takes 10-60 seconds. Result is stored with the other checks",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "internet"
+                ],
+                "summary": "Run a speed test now",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.NetStat"
+                        }
+                    }
+                }
+            }
+        },
+        "/net/stats": {
+            "get": {
+                "description": "Latency, up/down and speed test results, oldest first",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "internet"
+                ],
+                "summary": "Internet checks",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "How far back (default 24)",
+                        "name": "hours",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.NetStat"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/net/status": {
+            "get": {
+                "description": "Up/down, outage start, public IP and the latest check",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "internet"
+                ],
+                "summary": "Internet status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/netcheck.Status"
+                        }
+                    }
+                }
+            }
+        },
+        "/notify_test": {
+            "get": {
+                "description": "Trigger a test notification to verify notification settings",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Send test notification",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/port/{addr}/{port}": {
+            "get": {
+                "description": "Check whether a given TCP port on an address is open or closed",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "network"
+                ],
+                "summary": "Check port state",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "IP address or hostname",
+                        "name": "addr",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Port number",
+                        "name": "port",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "true if open, false if closed",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                }
+            }
+        },
+        "/rescan": {
+            "get": {
+                "description": "Manually trigger rescan",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Rescan all interfaces now",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/scan_status": {
+            "get": {
+                "description": "When the last scan finished. Poll after /rescan to know when results are in",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Last scan time",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/security": {
+            "get": {
+                "description": "Risky open ports and routers with UPnP, worst first",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "Security findings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/security/scan": {
+            "get": {
+                "description": "Runs in the background; poll /security until Running is false",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "security"
+                ],
+                "summary": "Start a security scan",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/status/{iface}": {
+            "get": {
+                "description": "Retrieve summary statistics of hosts, optionally filtered by interface",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Get network status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Interface name (omit for all interfaces)",
+                        "name": "iface",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Stat"
+                        }
+                    }
+                }
+            }
+        },
+        "/version": {
+            "get": {
+                "description": "Returns the current running version of the application",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Get application version",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/wol/{mac}": {
+            "get": {
+                "description": "Send a magic packet to wake up a host by its MAC address",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "network"
+                ],
+                "summary": "Send Wake-on-LAN packet",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "MAC address of the host",
+                        "name": "mac",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "true if sent successfully",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Conf": {
+            "type": "object",
+            "properties": {
+                "alertDNS": {
+                    "description": "device contacted a threat-list domain",
+                    "type": "boolean"
+                },
+                "alertIP": {
+                    "description": "known device changed IP",
+                    "type": "boolean"
+                },
+                "alertNet": {
+                    "description": "internet outage, public IP change",
+                    "type": "boolean"
+                },
+                "alertNew": {
+                    "description": "new device",
+                    "type": "boolean"
+                },
+                "alertOffline": {
+                    "description": "watched device offline / back online",
+                    "type": "boolean"
+                },
+                "alertSec": {
+                    "description": "new risky open port",
+                    "type": "boolean"
+                },
+                "arpArgs": {
+                    "type": "string"
+                },
+                "arpStrs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "color": {
+                    "type": "string"
+                },
+                "confPath": {
+                    "type": "string"
+                },
+                "dbpath": {
+                    "type": "string"
+                },
+                "dhcpleases": {
+                    "description": "Extra discovery: dnsmasq / Pi-hole leases file",
+                    "type": "string"
+                },
+                "dirPath": {
+                    "type": "string"
+                },
+                "dnspass": {
+                    "type": "string"
+                },
+                "dnstype": {
+                    "description": "Per-device DNS",
+                    "type": "string"
+                },
+                "dnsurl": {
+                    "type": "string"
+                },
+                "dnsuser": {
+                    "type": "string"
+                },
+                "host": {
+                    "type": "string"
+                },
+                "identifyEnable": {
+                    "description": "Device identification (mDNS, SSDP, DHCP)",
+                    "type": "boolean"
+                },
+                "ifaces": {
+                    "type": "string"
+                },
+                "influxAddr": {
+                    "type": "string"
+                },
+                "influxBucket": {
+                    "type": "string"
+                },
+                "influxEnable": {
+                    "description": "InfluxDB",
+                    "type": "boolean"
+                },
+                "influxOrg": {
+                    "type": "string"
+                },
+                "influxSkipTLS": {
+                    "type": "boolean"
+                },
+                "influxToken": {
+                    "type": "string"
+                },
+                "logLevel": {
+                    "type": "string"
+                },
+                "mqttPass": {
+                    "type": "string"
+                },
+                "mqttURL": {
+                    "description": "Home Assistant over MQTT",
+                    "type": "string"
+                },
+                "mqttUser": {
+                    "type": "string"
+                },
+                "netCheckMin": {
+                    "description": "Internet health",
+                    "type": "integer"
+                },
+                "nodePath": {
+                    "type": "string"
+                },
+                "offlineAfter": {
+                    "description": "Alerts",
+                    "type": "integer"
+                },
+                "pgconnect": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "string"
+                },
+                "prometheusEnable": {
+                    "description": "Prometheus",
+                    "type": "boolean"
+                },
+                "publicIPURL": {
+                    "description": "returns the public IP as plain text, empty = off",
+                    "type": "string"
+                },
+                "quietFrom": {
+                    "description": "\"22:00\", empty = no quiet hours",
+                    "type": "string"
+                },
+                "quietTo": {
+                    "description": "\"07:00\"",
+                    "type": "string"
+                },
+                "secScanHours": {
+                    "description": "Security check",
+                    "type": "integer"
+                },
+                "shoutURL": {
+                    "type": "string"
+                },
+                "speedHours": {
+                    "description": "hours between speed tests, 0 = only manual",
+                    "type": "integer"
+                },
+                "speedURL": {
+                    "description": "Cloudflare-compatible __down / __up endpoints",
+                    "type": "string"
+                },
+                "theme": {
+                    "type": "string"
+                },
+                "threatListURL": {
+                    "description": "hosts-format list of bad domains",
+                    "type": "string"
+                },
+                "timeout": {
+                    "type": "integer"
+                },
+                "trimHist": {
+                    "type": "integer"
+                },
+                "useDB": {
+                    "description": "PostgreSQL",
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Event": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "kind": {
+                    "description": "new, offline, online, ip",
+                    "type": "string"
+                },
+                "mac": {
+                    "type": "string"
+                },
+                "msg": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Host": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "dns": {
+                    "type": "string"
+                },
+                "hw": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "iface": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "known": {
+                    "type": "integer"
+                },
+                "mac": {
+                    "type": "string"
+                },
+                "model": {
+                    "description": "Filled in automatically",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "now": {
+                    "type": "integer"
+                },
+                "os": {
+                    "description": "e.g. \"iOS / macOS\", \"Android\", \"Windows\"",
+                    "type": "string"
+                },
+                "ports": {
+                    "description": "open ports from the last security scan",
+                    "type": "string"
+                },
+                "services": {
+                    "description": "announced services, comma separated",
+                    "type": "string"
+                },
+                "tags": {
+                    "description": "comma separated",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "phone, laptop, tv...",
+                    "type": "string"
+                },
+                "watch": {
+                    "description": "1 = notify on offline/online",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.NetStat": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "downMbps": {
+                    "description": "0 = no speed test this time",
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "latencyMs": {
+                    "description": "TCP connect time, ms",
+                    "type": "number"
+                },
+                "publicIP": {
+                    "type": "string"
+                },
+                "up": {
+                    "description": "1 = internet reachable",
+                    "type": "integer"
+                },
+                "upMbps": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.Stat": {
+            "type": "object",
+            "properties": {
+                "known": {
+                    "type": "integer"
+                },
+                "offline": {
+                    "type": "integer"
+                },
+                "online": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "unknown": {
+                    "type": "integer"
+                }
+            }
+        },
+        "netcheck.Status": {
+            "type": "object",
+            "properties": {
+                "downSince": {
+                    "type": "string"
+                },
+                "last": {
+                    "$ref": "#/definitions/models.NetStat"
+                },
+                "publicIP": {
+                    "type": "string"
+                },
+                "up": {
+                    "type": "boolean"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,67 @@
+version: 2
+project_name: lanlookout
+builds:
+  - main: ./cmd/lanlookout/
+    binary: lanlookout
+    id: default
+    env: [CGO_ENABLED=0]
+    goos:
+      - linux
+    goarch:
+      - 386
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - "5"
+      - "6"
+      - "7"
+
+nfpms:
+  - id: systemd
+    formats:
+    - deb
+    - rpm
+    maintainer: sarat03
+    description: Home network monitor with web GUI
+    homepage: https://github.com/sarat03/lanlookout
+    license: MIT
+    section: utils
+    dependencies: # Don't forget to edit!
+    - arp-scan
+    - tzdata
+    contents:
+    - src: ./configs/lanlookout.service
+      dst: /lib/systemd/system/lanlookout.service
+    scripts:
+      postinstall: ./configs/postinstall.sh
+
+  - id: alpine
+    formats:
+    - apk
+    maintainer: sarat03
+    description: Home network monitor with web GUI
+    homepage: https://github.com/sarat03/lanlookout
+    license: MIT
+    section: utils
+    dependencies: # Don't forget to edit!
+    - arp-scan
+    - tzdata
+    contents:
+    - src: ./configs/lanlookout
+      dst: /etc/init.d/lanlookout
+
+archives:
+  - files:
+    - LICENSE
+    - src: ./configs/lanlookout.service
+      dst: lanlookout.service
+    - src: ./configs/install.sh
+      dst: install.sh
+    wrap_in_directory: true
+    format_overrides:
+    - goos: windows
+      format: zip
+
+checksum:
+  name_template: "checksums.txt"

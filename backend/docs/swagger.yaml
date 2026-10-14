@@ -1,0 +1,718 @@
+basePath: /api/
+definitions:
+  models.Conf:
+    properties:
+      alertDNS:
+        description: device contacted a threat-list domain
+        type: boolean
+      alertIP:
+        description: known device changed IP
+        type: boolean
+      alertNet:
+        description: internet outage, public IP change
+        type: boolean
+      alertNew:
+        description: new device
+        type: boolean
+      alertOffline:
+        description: watched device offline / back online
+        type: boolean
+      alertSec:
+        description: new risky open port
+        type: boolean
+      arpArgs:
+        type: string
+      arpStrs:
+        items:
+          type: string
+        type: array
+      color:
+        type: string
+      confPath:
+        type: string
+      dbpath:
+        type: string
+      dhcpleases:
+        description: 'Extra discovery: dnsmasq / Pi-hole leases file'
+        type: string
+      dirPath:
+        type: string
+      dnspass:
+        type: string
+      dnstype:
+        description: Per-device DNS
+        type: string
+      dnsurl:
+        type: string
+      dnsuser:
+        type: string
+      host:
+        type: string
+      identifyEnable:
+        description: Device identification (mDNS, SSDP, DHCP)
+        type: boolean
+      ifaces:
+        type: string
+      influxAddr:
+        type: string
+      influxBucket:
+        type: string
+      influxEnable:
+        description: InfluxDB
+        type: boolean
+      influxOrg:
+        type: string
+      influxSkipTLS:
+        type: boolean
+      influxToken:
+        type: string
+      logLevel:
+        type: string
+      mqttPass:
+        type: string
+      mqttURL:
+        description: Home Assistant over MQTT
+        type: string
+      mqttUser:
+        type: string
+      netCheckMin:
+        description: Internet health
+        type: integer
+      nodePath:
+        type: string
+      offlineAfter:
+        description: Alerts
+        type: integer
+      pgconnect:
+        type: string
+      port:
+        type: string
+      prometheusEnable:
+        description: Prometheus
+        type: boolean
+      publicIPURL:
+        description: returns the public IP as plain text, empty = off
+        type: string
+      quietFrom:
+        description: '"22:00", empty = no quiet hours'
+        type: string
+      quietTo:
+        description: '"07:00"'
+        type: string
+      secScanHours:
+        description: Security check
+        type: integer
+      shoutURL:
+        type: string
+      speedHours:
+        description: hours between speed tests, 0 = only manual
+        type: integer
+      speedURL:
+        description: Cloudflare-compatible __down / __up endpoints
+        type: string
+      theme:
+        type: string
+      threatListURL:
+        description: hosts-format list of bad domains
+        type: string
+      timeout:
+        type: integer
+      trimHist:
+        type: integer
+      useDB:
+        description: PostgreSQL
+        type: string
+      version:
+        type: string
+    type: object
+  models.Event:
+    properties:
+      date:
+        type: string
+      id:
+        type: integer
+      kind:
+        description: new, offline, online, ip
+        type: string
+      mac:
+        type: string
+      msg:
+        type: string
+    type: object
+  models.Host:
+    properties:
+      date:
+        type: string
+      dns:
+        type: string
+      hw:
+        type: string
+      id:
+        type: integer
+      iface:
+        type: string
+      ip:
+        type: string
+      known:
+        type: integer
+      mac:
+        type: string
+      model:
+        description: Filled in automatically
+        type: string
+      name:
+        type: string
+      now:
+        type: integer
+      os:
+        description: e.g. "iOS / macOS", "Android", "Windows"
+        type: string
+      ports:
+        description: open ports from the last security scan
+        type: string
+      services:
+        description: announced services, comma separated
+        type: string
+      tags:
+        description: comma separated
+        type: string
+      type:
+        description: phone, laptop, tv...
+        type: string
+      watch:
+        description: 1 = notify on offline/online
+        type: integer
+    type: object
+  models.NetStat:
+    properties:
+      date:
+        type: string
+      downMbps:
+        description: 0 = no speed test this time
+        type: number
+      id:
+        type: integer
+      latencyMs:
+        description: TCP connect time, ms
+        type: number
+      publicIP:
+        type: string
+      up:
+        description: 1 = internet reachable
+        type: integer
+      upMbps:
+        type: number
+    type: object
+  models.Stat:
+    properties:
+      known:
+        type: integer
+      offline:
+        type: integer
+      online:
+        type: integer
+      total:
+        type: integer
+      unknown:
+        type: integer
+    type: object
+  netcheck.Status:
+    properties:
+      downSince:
+        type: string
+      last:
+        $ref: '#/definitions/models.NetStat'
+      publicIP:
+        type: string
+      up:
+        type: boolean
+    type: object
+info:
+  contact:
+    url: https://github.com/sarat03/lanlookout
+  description: 'Home network monitor: devices, internet health, security and DNS'
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: LanLookout API
+  version: "0.1"
+paths:
+  /all:
+    get:
+      description: Retrieve all hosts from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Host'
+            type: array
+      summary: Get all hosts
+      tags:
+      - hosts
+  /config:
+    get:
+      description: Returns the current configuration used by the app
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Conf'
+      summary: Get application configuration
+      tags:
+      - system
+  /dns/{ip}:
+    get:
+      description: From Pi-hole / AdGuard Home query logs
+      parameters:
+      - description: Device IP
+        in: path
+        name: ip
+        required: true
+        type: string
+      - description: Days back, 1 = today (default 1)
+        in: query
+        name: days
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Top domains of a device
+      tags:
+      - dns
+  /edit/{id}/{name}/{known}:
+    get:
+      description: Update a host's name and optionally toggle its "known" status
+      parameters:
+      - description: Host ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New name for the host
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Pass 'toggle' to flip the known/unknown status
+        in: path
+        name: known
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Edit host
+      tags:
+      - hosts
+  /events:
+    get:
+      description: Alerts (new device, offline, online, IP change), newest first
+      parameters:
+      - description: Max events (default 100)
+        in: query
+        name: num
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Event'
+            type: array
+      summary: Recent events
+      tags:
+      - system
+  /history:
+    get:
+      description: Retrieve the complete history of all hosts. Not recommended, the
+        output can be a lot
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Host'
+            type: array
+      summary: Get full history
+      tags:
+      - history
+  /history/{mac}:
+    get:
+      description: Retrieve the latest history entries for a specific host by MAC
+        address
+      parameters:
+      - description: MAC address of the host
+        in: path
+        name: mac
+        required: true
+        type: string
+      - description: Number of history entries to return
+        in: query
+        name: num
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Host'
+            type: array
+      summary: Get history by MAC
+      tags:
+      - history
+  /history/{mac}/{date}:
+    get:
+      description: |-
+        Retrieve history for a specific host on a given date
+        The date format is flexible and can be:
+        - Year only: `2025`
+        - Year + month: `2025-09`
+        - Full date: `2025-09-06`
+        - Full timestamp: `2025-09-06 00:58:26`
+      parameters:
+      - description: MAC address of the host
+        in: path
+        name: mac
+        required: true
+        type: string
+      - description: Date filter (supports YYYY, YYYY-MM, YYYY-MM-DD, YYYY-MM-DD HH:mm:ss)
+        in: path
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Host'
+            type: array
+      summary: Get history by date
+      tags:
+      - history
+  /host/{id}:
+    get:
+      description: Retrieve detailed information about a host by its unique ID
+      parameters:
+      - description: Host ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Host'
+      summary: Get host by ID
+      tags:
+      - hosts
+  /host/add/{mac}:
+    get:
+      description: |-
+        Add host by MAC, with optional Name, IP, Hardware
+        Returns `models.Host` with this MAC form DB, either just added or existing
+      parameters:
+      - description: Host MAC
+        in: path
+        name: mac
+        required: true
+        type: string
+      - description: Name
+        in: query
+        name: name
+        type: string
+      - description: IP
+        in: query
+        name: ip
+        type: string
+      - description: Hardware
+        in: query
+        name: hw
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Host'
+      summary: Add host manually
+      tags:
+      - hosts
+  /host/del/{id}:
+    get:
+      description: Remove a host from the database by its unique ID
+      parameters:
+      - description: Host ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Delete host
+      tags:
+      - hosts
+  /host/meta/{id}:
+    get:
+      description: Only the query params passed are changed
+      parameters:
+      - description: Host ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 1 = notify when it goes offline or comes back, 0 = don't
+        in: query
+        name: watch
+        type: string
+      - description: Device type, e.g. phone
+        in: query
+        name: type
+        type: string
+      - description: Comma separated tags
+        in: query
+        name: tags
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Host'
+      summary: Edit host watch, type and tags
+      tags:
+      - hosts
+  /known/all:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Number of hosts changed
+          schema:
+            type: integer
+      summary: Mark all hosts as known
+      tags:
+      - hosts
+  /net/speedtest:
+    get:
+      description: Takes 10-60 seconds. Result is stored with the other checks
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.NetStat'
+      summary: Run a speed test now
+      tags:
+      - internet
+  /net/stats:
+    get:
+      description: Latency, up/down and speed test results, oldest first
+      parameters:
+      - description: How far back (default 24)
+        in: query
+        name: hours
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.NetStat'
+            type: array
+      summary: Internet checks
+      tags:
+      - internet
+  /net/status:
+    get:
+      description: Up/down, outage start, public IP and the latest check
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/netcheck.Status'
+      summary: Internet status
+      tags:
+      - internet
+  /notify_test:
+    get:
+      description: Trigger a test notification to verify notification settings
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Send test notification
+      tags:
+      - system
+  /port/{addr}/{port}:
+    get:
+      description: Check whether a given TCP port on an address is open or closed
+      parameters:
+      - description: IP address or hostname
+        in: path
+        name: addr
+        required: true
+        type: string
+      - description: Port number
+        in: path
+        name: port
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: true if open, false if closed
+          schema:
+            type: boolean
+      summary: Check port state
+      tags:
+      - network
+  /rescan:
+    get:
+      description: Manually trigger rescan
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Rescan all interfaces now
+      tags:
+      - system
+  /scan_status:
+    get:
+      description: When the last scan finished. Poll after /rescan to know when results
+        are in
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Last scan time
+      tags:
+      - system
+  /security:
+    get:
+      description: Risky open ports and routers with UPnP, worst first
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Security findings
+      tags:
+      - security
+  /security/scan:
+    get:
+      description: Runs in the background; poll /security until Running is false
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Start a security scan
+      tags:
+      - security
+  /status/{iface}:
+    get:
+      description: Retrieve summary statistics of hosts, optionally filtered by interface
+      parameters:
+      - description: Interface name (omit for all interfaces)
+        in: path
+        name: iface
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Stat'
+      summary: Get network status
+      tags:
+      - system
+  /version:
+    get:
+      description: Returns the current running version of the application
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Get application version
+      tags:
+      - system
+  /wol/{mac}:
+    get:
+      description: Send a magic packet to wake up a host by its MAC address
+      parameters:
+      - description: MAC address of the host
+        in: path
+        name: mac
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: true if sent successfully
+          schema:
+            type: boolean
+      summary: Send Wake-on-LAN packet
+      tags:
+      - network
+swagger: "2.0"
