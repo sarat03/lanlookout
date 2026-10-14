@@ -30,6 +30,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: docker/build-push-action@v6
+        id: build
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -37,3 +38,28 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/lanlookout:latest
             ghcr.io/${{ github.repository_owner }}/lanlookout:${{ github.sha }}
+
+      # Opens a PR on the Umbrel app store pinning this image and bumping the patch version.
+      # Needs secret UMBREL_APPS_TOKEN: fine-grained PAT with Contents + Pull requests write on sarat03/umbrel-apps.
+      - name: Open Umbrel app store PR
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.UMBREL_APPS_TOKEN }}
+          IMAGE: ghcr.io/${{ github.repository_owner }}/lanlookout:${{ github.sha }}@${{ steps.build.outputs.digest }}
+          SHA: ${{ github.sha }}
+        run: |
+          [ -n "$GH_TOKEN" ] || { echo "::warning::UMBREL_APPS_TOKEN not set, skipping Umbrel PR"; exit 0; }
+          git clone -q "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository_owner }}/umbrel-apps.git" store
+          cd store/sarat-watch-your-lan
+          sed -i "s#image: ghcr.io/.*/lanlookout:.*#image: ${IMAGE}#" docker-compose.yml
+          old=$(sed -n 's/^version: "\(.*\)"/\1/p' umbrel-app.yml)
+          new=$(echo "$old" | awk -F. '{print $1"."$2"."$3+1}')
+          sed -i "s/^version: \".*\"/version: \"${new}\"/; s/^releaseNotes: .*/releaseNotes: \"Built from lanlookout ${SHA:0:7}.\"/" umbrel-app.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -q -b "lanlookout-${new}"
+          git commit -qam "Update LanLookout to ${new}"
+          git push -q origin "lanlookout-${new}"
+          gh pr create --repo ${{ github.repository_owner }}/umbrel-apps --base main --head "lanlookout-${new}" \
+            --title "Update LanLookout to ${new}" \
+            --body "Pins \`${IMAGE}\` (built from ${{ github.repository }}@${SHA}). Edit releaseNotes before merging if you want."
