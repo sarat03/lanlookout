@@ -173,6 +173,18 @@ func Classify(i Info, vendor string) (typ, os string) {
 		typ = "console"
 	case svc["sonos"] || svc["spotify-connect"] || svc["raop"] && !svc["airplay"]:
 		typ = "speaker"
+	// Smart-home kinds before the generic iot catch-all; matched on model, hostname and UPnP text.
+	// ponytail: name keywords only, misses devices with generic names (they stay iot)
+	case has(model+" "+host+" "+ssdp, "plug", "outlet", "socket"):
+		typ = "plug"
+	case has(model+" "+host+" "+ssdp, "thermostat", "ecobee", "tado", "netatmo"):
+		typ = "thermostat"
+	case has(model+" "+host+" "+ssdp, "fan", "dyson", "air purifier"):
+		typ = "fan"
+	case has(model+" "+host+" "+ssdp, "bulb", "light", "lamp", "lifx", "wiz", "nanoleaf"):
+		typ = "light"
+	case has(vendor, "tesla") || has(model+" "+host, "tesla", "polestar", "rivian"):
+		typ = "car"
 	case svc["hap"] || svc["matter"] || svc["matterc"] || has(vendor, "espressif", "tuya", "shelly", "sonoff", "philips lighting", "signify"):
 		typ = "iot"
 	case svc["smb"] || svc["adisk"] || svc["afpovertcp"] || has(vendor, "synology", "qnap"):

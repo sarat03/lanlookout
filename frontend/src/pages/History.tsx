@@ -1,4 +1,4 @@
-import { createEffect, For, Show } from "solid-js"
+import { createEffect, createSignal, For, Show } from "solid-js"
 import Filter from "../components/Filter"
 import { allHosts, histUpdOnFilter, Host, setHistUpdOnFilter, setShow, show } from "../functions/exports"
 import MacHistory from "../components/MacHistory"
@@ -14,6 +14,11 @@ function History() {
   const showStr = localStorage.getItem("histShow") as string;
   setShow(+showStr);
   (show() === 0 || isNaN(show())) ? setShow(200) : '';
+
+  let saved = "hosts";
+  try { saved = localStorage.getItem("histTab") || "hosts"; } catch {}
+  const [tab, setTab] = createSignal(saved);
+  const pick = (t: string) => { setTab(t); try { localStorage.setItem("histTab", t); } catch {} };
 
   createEffect(() => {
     if (histUpdOnFilter()) {
@@ -32,8 +37,13 @@ function History() {
       </div>
     </header>
 
-    <Events></Events>
+    <div class="wy-seg" role="tablist" aria-label="History view">
+      <For each={[["hosts", "Hosts"], ["events", "Recent events"]]}>{([id, label]) =>
+        <button type="button" role="tab" aria-selected={tab() === id} onClick={() => pick(id)}>{label}</button>
+      }</For>
+    </div>
 
+    <Show when={tab() === "hosts"} fallback={<Events></Events>}>
     <section class="wy-row-wrap" aria-label="Filters">
       <Filter></Filter>
       <HistShow name="histShow"></HistShow>
@@ -57,6 +67,7 @@ function History() {
         }</For>
       </Show>
     </section>
+    </Show>
     </>
   )
 }

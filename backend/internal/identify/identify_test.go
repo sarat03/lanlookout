@@ -34,6 +34,11 @@ func TestClassify(t *testing.T) {
 		{info("", ""), "Espressif Inc.", "iot", ""},
 		{Info{DHCP: "android-dhcp-14", Services: map[string]bool{}, SSDP: map[string]string{}}, "", "phone", "Android"},
 		{Info{Services: map[string]bool{}, SSDP: map[string]string{"deviceType": "urn:schemas-upnp-org:device:InternetGatewayDevice:1"}}, "", "router", ""},
+		{info("", "shelly-plug-s-1A2B", "hap"), "", "plug", ""},
+		{info("", "ecobee3-lite"), "", "thermostat", ""},
+		{info("", "dyson-fan"), "", "fan", ""},
+		{info("", "wiz_bulb_3f"), "Espressif Inc.", "light", ""},
+		{info("", ""), "Tesla Inc.", "car", ""},
 		{info("", ""), "", "", ""},
 	} {
 		typ, os := Classify(tc.i, tc.vendor)
