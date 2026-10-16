@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project are documented in this file.
 
-## [v0.2.0] - 2026-10-16
+## [v0.1.6] - 2026-10-16
 ### Changed
 - Home is now the start page (`/`); the hosts table moved to `/hosts`
 - Home layout is compact: member cards tile side by side and device lists flow into columns
