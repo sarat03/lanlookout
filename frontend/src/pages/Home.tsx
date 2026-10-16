@@ -1,6 +1,6 @@
-import { createMemo, createResource, createSignal, For, Show } from "solid-js";
-import { apiGetEvents, apiNetStatus } from "../functions/api";
-import { bkpHosts, Event, Host, hostTypes, isShared } from "../functions/exports";
+import { createEffect, createMemo, createResource, createSignal, For, Show } from "solid-js";
+import { apiGetEvents, apiNetStatus, apiSaveMemberOrder } from "../functions/api";
+import { appConfig, bkpHosts, Event, Host, hostTypes, isShared, setAppConfig } from "../functions/exports";
 
 // Types that tell us whether a person is home.
 const presenceTypes = ["phone", "watch"];
@@ -59,10 +59,15 @@ function Home() {
     return out.sort((a, b) => byName(a.host, b.host));
   });
 
+  // Saved card order; members not in it go last, alphabetically.
+  const [order, setOrder] = createSignal<string[]>([]);
+  createEffect(() => setOrder((appConfig().MemberOrder || "").split(",").filter(Boolean)));
+  const rank = (name: string) => { const i = order().indexOf(name); return i < 0 ? Infinity : i; };
+
   const members = createMemo(() => {
     const m = new Map<string, Host[]>();
     for (const h of all()) if (!isShared(h)) m.set(h.Owner, [...(m.get(h.Owner) || []), h]);
-    return [...m.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([name, hs]) => {
+    return [...m.entries()].sort(([a], [b]) => rank(a) - rank(b) || a.localeCompare(b)).map(([name, hs]) => {
       hs.sort(byName);
       const tracked = hs.filter(h => presenceTypes.includes(h.Type));
       // No phone or watch assigned: we can't tell, so say nothing.
@@ -81,7 +86,47 @@ function Home() {
   // Cards start closed; anyone with a device offline starts open.
   const [open, setOpen] = createSignal<Record<string, boolean>>({});
   const isOpen = (m: { name: string, hosts: Host[] }) => open()[m.name] ?? online(m.hosts) < m.hosts.length;
-  const toggle = (m: { name: string, hosts: Host[] }) => setOpen({ ...open(), [m.name]: !isOpen(m) });
+  const toggle = (m: { name: string, hosts: Host[] }) => {
+    if (dragged) { dragged = false; return; } // the click that ends a drag
+    setOpen({ ...open(), [m.name]: !isOpen(m) });
+  };
+
+  // Drag a card by its avatar. Pointer events so it works with touch too.
+  const [dragging, setDragging] = createSignal("");
+  let dragged = false;
+  const dragStart = (e: PointerEvent, name: string) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    setDragging(name);
+    dragged = false;
+    // On the window: reordering re-renders the card, so the handle under the finger goes away.
+    window.addEventListener("pointermove", dragMove);
+    window.addEventListener("pointerup", dragEnd);
+    window.addEventListener("pointercancel", dragEnd);
+  };
+  const dragMove = (e: PointerEvent) => {
+    const name = dragging();
+    if (!name) return;
+    const over = (document.elementFromPoint(e.clientX, e.clientY)?.closest("[data-member]") as HTMLElement | null)?.dataset.member;
+    if (!over || over === name) return;
+    const now = members().map(m => m.name);
+    const down = now.indexOf(over) > now.indexOf(name);
+    const names = now.filter(n => n !== name);
+    names.splice(names.indexOf(over) + (down ? 1 : 0), 0, name);
+    setOrder(names);
+    dragged = true;
+  };
+  const dragEnd = () => {
+    window.removeEventListener("pointermove", dragMove);
+    window.removeEventListener("pointerup", dragEnd);
+    window.removeEventListener("pointercancel", dragEnd);
+    if (!dragging()) return;
+    setDragging("");
+    if (!dragged) return;
+    setTimeout(() => dragged = false); // after the click that ends the drag, if any
+    setAppConfig({ ...appConfig(), MemberOrder: order().join(",") });
+    apiSaveMemberOrder(order());
+  };
 
   const internet = () => {
     const s = net() as any;
@@ -97,7 +142,7 @@ function Home() {
       <header class="wy-head">
         <div>
           <h1>Home</h1>
-          <div class="wy-sub">Health, people, then devices. A device's Owner puts it under a person or in Smart home (Shared).</div>
+          <div class="wy-sub">Who's home and what needs attention.</div>
         </div>
       </header>
 
@@ -132,9 +177,12 @@ function Home() {
 
       <div class="wy-people">
         <For each={members()} fallback={<section class="wy-card"><p class="wy-muted">No members yet. Set an Owner on a device to add someone.</p></section>}>{(m) =>
-          <section class={"wy-card wy-person" + (isOpen(m) ? " open" : "")}>
+          <section class={"wy-card wy-person" + (isOpen(m) ? " open" : "") + (dragging() === m.name ? " dragging" : "")} data-member={m.name}>
             <button type="button" class="wy-person-head" aria-expanded={isOpen(m)} onClick={() => toggle(m)}>
-              <span class={"wy-avatar" + (m.home ? " home" : "")}>{m.name.charAt(0).toUpperCase()}</span>
+              <i class="bi bi-grip-vertical wy-grip" title="Drag to reorder" aria-hidden="true"
+                onPointerDown={e => dragStart(e, m.name)}></i>
+              <span class={"wy-avatar" + (m.home ? " home" : "")} title="Drag to reorder"
+                onPointerDown={e => dragStart(e, m.name)}>{m.name.charAt(0).toUpperCase()}</span>
               <span class="wy-person-text">
                 <strong>{m.name}</strong>
                 <span>

@@ -1,6 +1,13 @@
 # Change Log
 All notable changes to this project are documented in this file.
 
+## [v0.1.8] - 2026-10-16
+### Changed
+- Home on phones: the four summary tiles sit in a 2×2 grid instead of one per row
+- Home subtitle shortened to one line
+### Added
+- Reorder people on Home by dragging the grip or their circle (mouse or touch). The order is saved in the config (`MEMBER_ORDER`), so it is the same on every device; new members go last
+
 ## [v0.1.7] - 2026-10-16
 ### Fixed
 - Release CI: the Umbrel app store PR step finds the app folder by its image, so the renamed `sarat-lan-look-out` folder no longer breaks it. This release carries the 0.1.6 changes to Umbrel

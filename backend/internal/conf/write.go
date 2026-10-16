@@ -45,6 +45,7 @@ func Write(config models.Conf) {
 	viper.Set("ALERT_DNS", config.AlertDNS)
 	viper.Set("QUIET_FROM", config.QuietFrom)
 	viper.Set("QUIET_TO", config.QuietTo)
+	viper.Set("MEMBER_ORDER", config.MemberOrder)
 
 	viper.Set("IDENTIFY_ENABLE", config.IdentifyEnable)
 	viper.Set("NET_CHECK_MIN", config.NetCheckMin)

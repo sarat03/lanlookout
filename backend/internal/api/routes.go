@@ -52,6 +52,7 @@ func Routes(router *gin.Engine) {
 		r0.POST("/config_alerts/", saveAlertsHandler)         // config.go
 		r0.POST("/config_monitor/", saveMonitorHandler)       // config.go
 		r0.POST("/config_dns/", saveDNSHandler)               // config.go
+		r0.POST("/config_members/", saveMembersHandler)       // config.go
 	}
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

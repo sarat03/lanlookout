@@ -126,6 +126,10 @@ export const apiHostMeta = async (id:number, meta: { watch?: number, type?: stri
   return res;
 };
 
+export const apiSaveMemberOrder = async (names: string[]) => {
+  await fetch(apiPath+'/api/config_members/', { method: "POST", body: new URLSearchParams({ order: names.join(",") }) });
+};
+
 export const apiKnownAll = async () => {
 
   const url = apiPath+'/api/known/all';

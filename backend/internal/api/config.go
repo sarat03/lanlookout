@@ -147,3 +147,12 @@ func saveDNSHandler(c *gin.Context) {
 
 	c.Redirect(http.StatusFound, c.Request.Referer())
 }
+
+// saveMembersHandler - order of the person cards on the Home page
+func saveMembersHandler(c *gin.Context) {
+
+	conf.AppConfig.MemberOrder = c.PostForm("order")
+	conf.Write(conf.AppConfig)
+
+	c.Status(http.StatusNoContent)
+}
