@@ -1,11 +1,16 @@
-import { For } from "solid-js"
+import { createResource, For } from "solid-js"
 import { appConfig } from "../../functions/exports"
-import { apiPath } from "../../functions/api"
+import { apiGetIfaces, apiPath } from "../../functions/api"
 import Field from "./Field"
 
 const docs = "https://github.com/sarat03/lanlookout/blob/main/docs/VLAN_ARP_SCAN.md";
 
 function Scan() {
+
+  // Configured ones stay listed even if missing here (e.g. a VLAN that's down).
+  const [found] = createResource(apiGetIfaces);
+  const chosen = () => (appConfig().Ifaces || "").split(/\s+/).filter(Boolean);
+  const ifaces = () => [...new Set([...(found() || []), ...chosen()])];
 
   return (
     <section class="wy-card" aria-label="Scanning">
@@ -14,8 +19,14 @@ function Scan() {
         <div class="wy-sub">Which networks are scanned, how often, and where results are stored.</div>
       </div>
       <form action={apiPath + '/api/config_settings/'} method="post">
-        <Field id="ifaces" label="Interfaces" help="One or more, space separated. For example eth0 wlan0.">
-          <input id="ifaces" name="ifaces" type="text" class="wy-input wy-mono" value={appConfig().Ifaces}></input>
+        <Field label="Interfaces" help="Network interfaces of this machine to scan. Pick one or more.">
+          <div class="wy-row-wrap" style={{ gap: "8px 16px" }}>
+            <For each={ifaces()}>{(i) =>
+              <label class="wy-inline-label wy-mono">
+                <input type="checkbox" name="ifaces" value={i} checked={chosen().includes(i)}/> {i}
+              </label>
+            }</For>
+          </div>
         </Field>
         <Field id="timeout" label="Scan every (seconds)" help="Shorter means faster alerts and more network traffic.">
           <input id="timeout" name="timeout" type="number" min="1" class="wy-input wy-mono" value={appConfig().Timeout}></input>

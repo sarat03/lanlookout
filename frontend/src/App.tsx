@@ -13,6 +13,7 @@ function App() {
   });
 
   const Config = lazy(() => import("./pages/Config"));
+  const Home = lazy(() => import("./pages/Home"));
   const History = lazy(() => import("./pages/History"));
   const HostPage = lazy(() => import("./pages/HostPage"));
   const Internet = lazy(() => import("./pages/Internet"));
@@ -23,6 +24,7 @@ function App() {
       <Router root={(props) => <><Header></Header><main class="wy-main">{props.children}</main></>}>
           <Route path="/" component={Body}/>
           <Route path="/config" component={Config}/>
+          <Route path="/home" component={Home}/>
           <Route path="/history" component={History}/>
           <Route path="/host/:id" component={HostPage}/>
           <Route path="/internet" component={Internet}/>

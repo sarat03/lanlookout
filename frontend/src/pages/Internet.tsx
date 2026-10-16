@@ -39,6 +39,25 @@ function LatencyChart(_props: { stats: NetStat[] }) {
   );
 }
 
+// Status strip: one bar per check, green = online, red = down. Hover a bar for its time.
+function UptimeChart(_props: { stats: NetStat[] }) {
+  const UH = 40;
+  const step = () => (W - PAD) / Math.max(_props.stats.length, 1);
+  return (
+    <svg class="wy-chart" viewBox={`0 0 ${W} ${UH + 16}`} preserveAspectRatio="none" role="img"
+      aria-label="Online status over time" style={{ height: "72px" }}>
+      <For each={_props.stats}>{(p, i) =>
+        <rect x={PAD + i() * step()} y={0} width={Math.max(step() - 1, 1)} height={UH}
+          fill={p.Up ? "var(--wy-on)" : "var(--wy-danger)"}>
+          <title>{p.Date.slice(5, 16)} · {p.Up ? "online" : "down"}</title>
+        </rect>
+      }</For>
+      <text x={PAD} y={UH + 14}>{_props.stats[0].Date.slice(5, 16)}</text>
+      <text x={W} y={UH + 14} text-anchor="end">{_props.stats[_props.stats.length - 1].Date.slice(5, 16)}</text>
+    </svg>
+  );
+}
+
 function Internet() {
 
   const [hours, setHours] = createSignal(24);
@@ -111,9 +130,9 @@ function Internet() {
       </div>
     </section>
 
-    <section class="wy-card" aria-label="Latency">
+    <section class="wy-card" aria-label="Online status">
       <div class="wy-row-wrap">
-        <h2 style={{ "flex-grow": 1 }}>Latency</h2>
+        <h2 style={{ "flex-grow": 1 }}>Online status <span class="wy-muted" style={{ "font-weight": 400 }}>{uptime() ?? "–"}% uptime</span></h2>
         <label class="wy-inline-label">Range
           <select class="wy-input" value={hours()} onChange={e => setHours(+e.currentTarget.value)}>
             <option value="6">6 hours</option>
@@ -123,6 +142,17 @@ function Internet() {
         </label>
       </div>
       <Show when={list().length} fallback={<div class="wy-muted">{stats.loading ? "Loading…" : "No checks yet. The first one runs when the app starts."}</div>}>
+        <UptimeChart stats={list()}/>
+        <div class="wy-legend">
+          <span><i style={{ background: "var(--wy-on)" }}></i>Online</span>
+          <span><i style={{ background: "var(--wy-danger)" }}></i>Down</span>
+        </div>
+      </Show>
+    </section>
+
+    <section class="wy-card" aria-label="Latency">
+      <h2>Latency</h2>
+      <Show when={list().length} fallback={<div class="wy-muted">{stats.loading ? "Loading…" : "No checks yet."}</div>}>
         <LatencyChart stats={list()}/>
         <div class="wy-legend">
           <span><i style={{ background: "var(--wy-accent)" }}></i>Latency to 1.1.1.1 / 8.8.8.8</span>

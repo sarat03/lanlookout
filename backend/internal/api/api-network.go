@@ -2,6 +2,7 @@ package api
 
 import (
 	"log/slog"
+	"net"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -48,4 +49,29 @@ func sendWOL(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, !check.IfError(err))
+}
+
+// getIfaces godoc
+// @Summary      List network interfaces
+// @Description  Up, non-loopback interfaces with an IPv4 address of this machine, to pick which ones to scan
+// @Tags         network
+// @Produce      json
+// @Success      200  {array}  string
+// @Router       /ifaces [get]
+func getIfaces(c *gin.Context) {
+	names := []string{}
+	ifaces, _ := net.Interfaces()
+	for _, i := range ifaces {
+		if i.Flags&net.FlagUp == 0 || i.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+		addrs, _ := i.Addrs()
+		for _, a := range addrs { // arp-scan needs IPv4
+			if n, ok := a.(*net.IPNet); ok && n.IP.To4() != nil {
+				names = append(names, i.Name)
+				break
+			}
+		}
+	}
+	c.IndentedJSON(http.StatusOK, names)
 }

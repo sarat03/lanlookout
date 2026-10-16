@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -29,7 +30,7 @@ func saveSettingsHandler(c *gin.Context) {
 
 	conf.AppConfig.LogLevel = c.PostForm("log")
 	conf.AppConfig.ArpArgs = c.PostForm("arpargs")
-	conf.AppConfig.Ifaces = c.PostForm("ifaces")
+	conf.AppConfig.Ifaces = strings.Join(c.PostFormArray("ifaces"), " ") // one checkbox per interface
 	conf.AppConfig.DHCPLeases = c.PostForm("leases")
 
 	useDB := c.PostForm("usedb")

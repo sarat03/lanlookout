@@ -10,7 +10,7 @@ on:
     - 'backend/**'
 
 permissions:
-  contents: read
+  contents: write # tag + GitHub release
   packages: write
 
 jobs:
@@ -18,6 +18,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # The single version source; the About page shows the same file.
+      - name: Read version
+        id: ver
+        run: |
+          v=$(sed 's/^VERSION=//' backend/internal/web/public/version | tr -d '[:space:]')
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          git fetch -q --tags
+          if git rev-parse -q --verify "refs/tags/v$v" >/dev/null; then
+            echo "new=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::v$v is already released, bump backend/internal/web/public/version to release again"
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: docker/setup-qemu-action@v3
 
@@ -38,13 +52,21 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/lanlookout:latest
             ghcr.io/${{ github.repository_owner }}/lanlookout:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/lanlookout:${{ steps.ver.outputs.version }}
 
-      # Opens a PR on the Umbrel app store pinning this image and bumping the patch version.
+      - name: Tag and create GitHub release
+        if: github.ref == 'refs/heads/main' && steps.ver.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "v${{ steps.ver.outputs.version }}" --target "${{ github.sha }}" --title "v${{ steps.ver.outputs.version }}" --generate-notes
+
+      # Opens a PR on the Umbrel app store pinning this image, with the same version as the app.
       # Needs secret UMBREL_APPS_TOKEN: fine-grained PAT with Contents + Pull requests write on sarat03/umbrel-apps.
       - name: Open Umbrel app store PR
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && steps.ver.outputs.new == 'true'
         env:
           GH_TOKEN: ${{ secrets.UMBREL_APPS_TOKEN }}
+          VERSION: ${{ steps.ver.outputs.version }}
           IMAGE: ghcr.io/${{ github.repository_owner }}/lanlookout:${{ github.sha }}@${{ steps.build.outputs.digest }}
           SHA: ${{ github.sha }}
         run: |
@@ -52,9 +74,8 @@ jobs:
           git clone -q "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository_owner }}/umbrel-apps.git" store
           cd store/sarat-watch-your-lan
           sed -i "s#image: ghcr.io/.*/lanlookout:.*#image: ${IMAGE}#" docker-compose.yml
-          old=$(sed -n 's/^version: "\(.*\)"/\1/p' umbrel-app.yml)
-          new=$(echo "$old" | awk -F. '{print $1"."$2"."$3+1}')
-          sed -i "s/^version: \".*\"/version: \"${new}\"/; s/^releaseNotes: .*/releaseNotes: \"Built from lanlookout ${SHA:0:7}.\"/" umbrel-app.yml
+          new=$VERSION
+          sed -i "s|^version: \".*\"|version: \"${new}\"|; s|^releaseNotes: .*|releaseNotes: \"See https://github.com/${{ github.repository }}/releases/tag/v${new}\"|" umbrel-app.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -q -b "lanlookout-${new}"

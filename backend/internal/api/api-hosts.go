@@ -3,6 +3,7 @@ package api
 import (
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -151,6 +152,7 @@ func knownAll(c *gin.Context) {
 // @Param        watch  query  string  false  "1 = notify when it goes offline or comes back, 0 = don't"
 // @Param        type   query  string  false  "Device type, e.g. phone"
 // @Param        tags   query  string  false  "Comma separated tags"
+// @Param        owner  query  string  false  "Household member who owns it, empty = shared"
 // @Success      200  {object}  models.Host
 // @Router       /host/meta/{id} [get]
 func metaHost(c *gin.Context) {
@@ -172,6 +174,9 @@ func metaHost(c *gin.Context) {
 	}
 	if t, ok := c.GetQuery("tags"); ok {
 		host.Tags = t
+	}
+	if o, ok := c.GetQuery("owner"); ok {
+		host.Owner = strings.TrimSpace(o)
 	}
 
 	gdb.Update("now", host)

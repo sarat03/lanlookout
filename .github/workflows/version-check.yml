@@ -1,0 +1,26 @@
+name: Version check
+
+# Any PR that changes the app must bump backend/internal/web/public/version.
+on:
+  pull_request:
+    paths:
+    - 'Dockerfile'
+    - 'backend/**'
+    - 'frontend/src/**'
+
+jobs:
+  bumped:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Version is higher than on the base branch
+        run: |
+          f=backend/internal/web/public/version
+          new=$(sed 's/^VERSION=//' $f | tr -d '[:space:]')
+          old=$(git show "origin/${{ github.base_ref }}:$f" | sed 's/^VERSION=//' | tr -d '[:space:]')
+          echo "base $old, this PR $new"
+          echo "$new" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "::error file=$f::Version must look like 1.2.3"; exit 1; }
+          [ "$new" != "$old" ] && [ "$(printf '%s\n%s\n' "$old" "$new" | sort -V | tail -1)" = "$new" ] \
+            || { echo "::error file=$f::Bump the version (now $old). Patch for fixes, minor for features."; exit 1; }

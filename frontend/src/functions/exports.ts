@@ -15,6 +15,7 @@ export interface Host {
 	Watch: number;
 	Type:  string;
 	Tags:  string;
+	Owner: string;
 	Model:    string;
 	OS:       string;
 	Services: string;
@@ -29,6 +30,9 @@ export const hostTypes: Record<string, string> = {
 	plug: "bi-plug", thermostat: "bi-thermometer-half", fan: "bi-fan", light: "bi-lightbulb",
 	car: "bi-car-front", iot: "bi-cpu", other: "bi-question-circle",
 };
+
+// Types that belong to the house rather than a person.
+export const smartTypes = ["plug", "thermostat", "fan", "light", "camera", "speaker", "iot"];
 
 export const tagList = (h: Host) => (h.Tags || "").split(",").map(t => t.trim()).filter(Boolean);
 
@@ -97,6 +101,7 @@ export const emptyHost:Host = {
 	Watch: 0,
 	Type:  "",
 	Tags:  "",
+	Owner: "",
 	Model: "",
 	OS: "",
 	Services: "",
