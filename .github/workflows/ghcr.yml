@@ -72,7 +72,10 @@ jobs:
         run: |
           [ -n "$GH_TOKEN" ] || { echo "::warning::UMBREL_APPS_TOKEN not set, skipping Umbrel PR"; exit 0; }
           git clone -q "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository_owner }}/umbrel-apps.git" store
-          cd store/sarat-watch-your-lan
+          # The app folder is the one whose compose file runs our image (it has been renamed before).
+          compose=$(grep -l "image: ghcr.io/.*/lanlookout:" store/*/docker-compose.yml | head -1)
+          [ -n "$compose" ] || { echo "::error::No app in umbrel-apps uses the lanlookout image"; exit 1; }
+          cd "$(dirname "$compose")"
           sed -i "s#image: ghcr.io/.*/lanlookout:.*#image: ${IMAGE}#" docker-compose.yml
           new=$VERSION
           sed -i "s|^version: \".*\"|version: \"${new}\"|; s|^releaseNotes: .*|releaseNotes: \"See https://github.com/${{ github.repository }}/releases/tag/v${new}\"|" umbrel-app.yml
