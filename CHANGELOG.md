@@ -1,6 +1,11 @@
 # Change Log
 All notable changes to this project are documented in this file.
 
+## [v0.2.0] - 2026-10-16
+### Changed
+- Home is now the start page (`/`); the hosts table moved to `/hosts`
+- Home layout is compact: member cards tile side by side and device lists flow into columns
+
 ## [v0.1.5] - 2026-10-15
 ### Added
 - Household members: Owner on each device, Home page with a card per member and a shared Smart home card

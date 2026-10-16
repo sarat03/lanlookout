@@ -4,11 +4,11 @@ import { hostStatus } from "../components/Body/TableRow";
 
 function DeviceList(_props: { hosts: Host[] }) {
   return (
-    <ul style={{ "list-style": "none", margin: 0, padding: 0, display: "grid", gap: "8px" }}>
+    <ul class="wy-devlist">
       <For each={_props.hosts}>{(h) => {
         const st = hostStatus(h);
         return (
-          <li style={{ display: "flex", "align-items": "center", gap: "8px" }}>
+          <li>
             <span class={"wy-dot " + st.cls} title={st.label} aria-label={st.label}></span>
             <Show when={hostTypes[h.Type]}><i class={"bi " + hostTypes[h.Type] + " wy-muted"} aria-hidden="true"></i></Show>
             <a class="wy-link" href={"/host/" + h.ID}>{h.Name || h.DNS || h.IP}</a>
@@ -41,7 +41,8 @@ function Home() {
           <div class="wy-sub">Devices by household member. Set the Owner on a device to assign it.</div>
         </div>
       </header>
-      <section class="wy-card" aria-label="Smart home">
+      <div class="wy-home">
+      <section class="wy-card wy-home-wide" aria-label="Smart home">
         <h2><i class="bi bi-house-gear" aria-hidden="true"></i> Smart home <span class="wy-muted">{online(smart())}/{smart().length} online</span></h2>
         <Show when={smart().length} fallback={<p class="wy-muted">No smart-home devices yet. Set a device's type to plug, light, camera, etc.</p>}>
           <DeviceList hosts={smart()}/>
@@ -53,6 +54,7 @@ function Home() {
           <DeviceList hosts={m.hosts}/>
         </section>
       }</For>
+      </div>
     </>
   );
 }
