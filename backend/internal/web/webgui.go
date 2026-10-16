@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/sarat03/lanlookout/internal/api"
 	"github.com/sarat03/lanlookout/internal/check"
@@ -32,7 +33,7 @@ func Gui() {
 
 	file, err := pubFS.ReadFile("public/version")
 	check.IfError(err)
-	conf.AppConfig.Version = string(file)[8:]
+	conf.AppConfig.Version = strings.TrimSpace(strings.TrimPrefix(string(file), "VERSION="))
 
 	address := conf.AppConfig.Host + ":" + conf.AppConfig.Port
 

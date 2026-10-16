@@ -9,7 +9,7 @@ function About() {
   onMount(async () => {
     const v = await apiGetVersion();
     setVersion(v);
-    setLink("https://github.com/sarat03/lanlookout/releases/tag/"+v);
+    setLink("https://github.com/sarat03/lanlookout/releases/tag/v"+v);
   });
 
   return (
