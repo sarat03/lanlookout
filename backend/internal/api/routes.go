@@ -25,6 +25,7 @@ func Routes(router *gin.Engine) {
 		r0.GET("/notify_test", notifyTest)  // api-system.go
 		r0.GET("/status/*iface", getStatus) // api-system.go
 		r0.GET("/version", getVersion)      // api-system.go
+		r0.GET("/ifaces", getIfaces)        // api-network.go
 		r0.GET("/rescan", triggerRescan)    // api-system.go
 		r0.GET("/scan_status", scanStatus)  // api-system.go
 		r0.GET("/events", getEvents)        // api-system.go

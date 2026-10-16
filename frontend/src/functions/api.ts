@@ -7,6 +7,10 @@ export const apiGetAllHosts = async () => {
   return hosts;
 };
 
+export const apiGetIfaces = async (): Promise<string[]> => {
+  return await (await fetch(apiPath+'/api/ifaces')).json();
+};
+
 export const apiGetConfig = async () => {
 
   const url = apiPath+'/api/config';
@@ -113,7 +117,7 @@ export const apiGetEvents = async (num: number) => {
   return res;
 };
 
-export const apiHostMeta = async (id:number, meta: { watch?: number, type?: string, tags?: string }) => {
+export const apiHostMeta = async (id:number, meta: { watch?: number, type?: string, tags?: string, owner?: string }) => {
 
   const q = new URLSearchParams(Object.entries(meta).map(([k, v]) => [k, String(v)]));
   const url = apiPath+'/api/host/meta/'+id+'?'+q;

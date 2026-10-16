@@ -55,6 +55,7 @@ func Gui() {
 
 	router.GET("/", indexHandler)          // index.go
 	router.GET("/config", indexHandler)    // index.go
+	router.GET("/home", indexHandler)      // index.go
 	router.GET("/history", indexHandler)   // index.go
 	router.GET("/internet", indexHandler)  // index.go
 	router.GET("/security", indexHandler)  // index.go

@@ -65,7 +65,7 @@ function Body() {
       (s === "all" || (s === "on" && h.Now == 1) || (s === "off" && h.Now != 1) || (s === "new" && h.Known != 1))
       && (!iface() || h.Iface === iface())
       && (!allTags().includes(tag()) || tagList(h).includes(tag())) // stale saved tag = no filter
-      && (!q || [h.Name, h.IP, h.Mac, h.Hw, h.Iface, h.DNS, h.Type, h.Tags, h.Model, h.OS, h.Services].join(" ").toLowerCase().includes(q))
+      && (!q || [h.Name, h.IP, h.Mac, h.Hw, h.Iface, h.DNS, h.Type, h.Tags, h.Owner, h.Model, h.OS, h.Services].join(" ").toLowerCase().includes(q))
     );
     const f = sort() as keyof Host;
     const dir = desc() ? -1 : 1;

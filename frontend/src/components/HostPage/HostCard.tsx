@@ -1,6 +1,6 @@
-import { For } from "solid-js";
+import { createEffect, createSignal, For, Show } from "solid-js";
 import { apiEditHost, apiHostMeta } from "../../functions/api";
-import { hostTypes } from "../../functions/exports";
+import { bkpHosts, hostTypes, tagList } from "../../functions/exports";
 
 import { debounce } from "@solid-primitives/scheduled";
 
@@ -8,9 +8,35 @@ function HostCard(_props: any) {
 
   let name:string = "";
 
-  const debouncedTags = debounce(async (val: string) => {
-      await apiHostMeta(_props.host.ID, { tags: val });
-    }, 500);
+  // Choices come from what other devices already use.
+  const owners = () => [...new Set([...bkpHosts().map(h => h.Owner), owner()].filter(Boolean))].sort();
+  const allTags = () => [...new Set([...bkpHosts().flatMap(tagList), ...tags()])].sort();
+
+  const [owner, setOwner] = createSignal<string>(_props.host.Owner || "");
+  const [adding, setAdding] = createSignal(false);
+  const saveOwner = (o: string) => {
+    setOwner(o.trim());
+    setAdding(false);
+    apiHostMeta(_props.host.ID, { owner: o.trim() });
+  };
+
+  const [tags, setTags] = createSignal<string[]>(tagList(_props.host));
+
+  // The host loads after the card mounts.
+  createEffect(() => {
+    setOwner(_props.host.Owner || "");
+    setTags(tagList(_props.host));
+  });
+  const saveTags = (t: string[]) => {
+    setTags(t);
+    apiHostMeta(_props.host.ID, { tags: t.join(",") });
+  };
+  const toggleTag = (t: string) => saveTags(tags().includes(t) ? tags().filter(x => x !== t) : [...tags(), t]);
+  const addTag = (el: HTMLInputElement) => {
+    const t = el.value.trim();
+    el.value = "";
+    if (t && !tags().includes(t)) saveTags([...tags(), t]);
+  };
 
   const debouncedApi = debounce(async (val: string) => {
       await apiEditHost(_props.host.ID, val, "");
@@ -46,10 +72,30 @@ function HostCard(_props: any) {
             <For each={Object.keys(hostTypes)}>{(t) => <option value={t}>{t}</option>}</For>
           </select>
         </label>
-        <label class="wy-label" style={{ flex: "2 1 180px" }}>Tags
-          <input type="text" class="wy-input" placeholder="family, work" value={_props.host.Tags || ""}
-            onInput={e => debouncedTags(e.currentTarget.value)}/>
+        <label class="wy-label" style={{ flex: "1 1 140px" }}>Owner
+          <Show when={!adding()} fallback={
+            <input type="text" class="wy-input" placeholder="New member's name" autofocus
+              onKeyDown={e => { if (e.key === "Enter") saveOwner(e.currentTarget.value); if (e.key === "Escape") setAdding(false); }}
+              onBlur={e => e.currentTarget.value.trim() ? saveOwner(e.currentTarget.value) : setAdding(false)}/>
+          }>
+            <select class="wy-input" value={owner()}
+              onChange={e => e.currentTarget.value === "+" ? setAdding(true) : saveOwner(e.currentTarget.value)}>
+              <option value="" selected={!owner()}>Shared</option>
+              <For each={owners()}>{(o) => <option value={o} selected={o === owner()}>{o}</option>}</For>
+              <option value="+">+ Add member…</option>
+            </select>
+          </Show>
         </label>
+      </div>
+      <div class="wy-label">Tags
+        <div class="wy-row-wrap" role="group" aria-label="Tags" style={{ gap: "8px" }}>
+          <For each={allTags()}>{(t) =>
+            <button type="button" class="wy-btn wy-chip" aria-pressed={tags().includes(t)} onClick={() => toggleTag(t)}>{t}</button>
+          }</For>
+          <input type="text" class="wy-input" placeholder="+ New tag" aria-label="New tag" style={{ width: "120px" }}
+            onKeyDown={e => { if (e.key === "Enter") addTag(e.currentTarget); }}
+            onBlur={e => addTag(e.currentTarget)}/>
+        </div>
       </div>
       <dl class="wy-dl">
         <dt>IP address</dt>

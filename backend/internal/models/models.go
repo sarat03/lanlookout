@@ -78,6 +78,7 @@ type Host struct {
 	Watch int    `gorm:"column:WATCH"` // 1 = notify on offline/online
 	Type  string `gorm:"column:TYPE"`  // phone, laptop, tv...
 	Tags  string `gorm:"column:TAGS"`  // comma separated
+	Owner string `gorm:"column:OWNER"` // household member, empty = shared
 	// Filled in automatically
 	Model    string `gorm:"column:MODEL"`    // e.g. "Chromecast", "MacBookPro18,1"
 	OS       string `gorm:"column:OS"`       // e.g. "iOS / macOS", "Android", "Windows"

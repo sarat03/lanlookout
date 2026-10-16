@@ -5,6 +5,7 @@ import { useLocation } from "@solidjs/router";
 
 const links = [
   { href: "/", label: "Hosts", icon: "bi-hdd-stack" },
+  { href: "/home/", label: "Home", icon: "bi-house-heart" },
   { href: "/history/", label: "History", icon: "bi-activity" },
   { href: "/internet/", label: "Internet", icon: "bi-globe2" },
   { href: "/security/", label: "Security", icon: "bi-shield-check" },
