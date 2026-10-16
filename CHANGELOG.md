@@ -6,6 +6,8 @@ All notable changes to this project are documented in this file.
 - Home is now the start page (`/`); the hosts table moved to `/hosts`
 - New Home layout: health tiles (devices online, offline, new today, internet), a Needs attention list, a card per person with Home/Away from their phone or watch, and Smart home as compact chips
 - Person cards open on click to show their devices; cards with something offline start open
+- Owner is never empty: it is `Shared` or a member. New devices start as `Shared` and existing empty owners are migrated
+- Smart home card shows devices whose Owner is `Shared` (was: unowned devices of certain types). Unreviewed devices wait in Needs attention
 
 ## [v0.1.5] - 2026-10-15
 ### Added

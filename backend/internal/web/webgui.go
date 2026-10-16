@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/sarat03/lanlookout/internal/api"
 	"github.com/sarat03/lanlookout/internal/check"
 	"github.com/sarat03/lanlookout/internal/conf"
 	"github.com/sarat03/lanlookout/internal/prometheus"
-	"github.com/gin-gonic/gin"
 )
 
 // templFS - html templates

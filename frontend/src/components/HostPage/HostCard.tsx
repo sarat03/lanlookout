@@ -1,6 +1,6 @@
 import { createEffect, createSignal, For, Show } from "solid-js";
 import { apiEditHost, apiHostMeta } from "../../functions/api";
-import { bkpHosts, hostTypes, tagList } from "../../functions/exports";
+import { bkpHosts, hostTypes, SHARED, tagList } from "../../functions/exports";
 
 import { debounce } from "@solid-primitives/scheduled";
 
@@ -9,22 +9,24 @@ function HostCard(_props: any) {
   let name:string = "";
 
   // Choices come from what other devices already use.
-  const owners = () => [...new Set([...bkpHosts().map(h => h.Owner), owner()].filter(Boolean))].sort();
+  const owners = () => [...new Set([...bkpHosts().map(h => h.Owner), owner()].filter(o => o && o !== SHARED))].sort();
   const allTags = () => [...new Set([...bkpHosts().flatMap(tagList), ...tags()])].sort();
 
-  const [owner, setOwner] = createSignal<string>(_props.host.Owner || "");
+  const [owner, setOwner] = createSignal<string>(_props.host.Owner || SHARED);
   const [adding, setAdding] = createSignal(false);
   const saveOwner = (o: string) => {
-    setOwner(o.trim());
+    o = o.trim();
+    if (!o || o.toLowerCase() === SHARED.toLowerCase()) o = SHARED;
+    setOwner(o);
     setAdding(false);
-    apiHostMeta(_props.host.ID, { owner: o.trim() });
+    apiHostMeta(_props.host.ID, { owner: o });
   };
 
   const [tags, setTags] = createSignal<string[]>(tagList(_props.host));
 
   // The host loads after the card mounts.
   createEffect(() => {
-    setOwner(_props.host.Owner || "");
+    setOwner(_props.host.Owner || SHARED);
     setTags(tagList(_props.host));
   });
   const saveTags = (t: string[]) => {
@@ -80,7 +82,7 @@ function HostCard(_props: any) {
           }>
             <select class="wy-input" value={owner()}
               onChange={e => e.currentTarget.value === "+" ? setAdding(true) : saveOwner(e.currentTarget.value)}>
-              <option value="" selected={!owner()}>Shared</option>
+              <option value={SHARED} selected={owner() === SHARED}>Shared (smart home)</option>
               <For each={owners()}>{(o) => <option value={o} selected={o === owner()}>{o}</option>}</For>
               <option value="+">+ Add member…</option>
             </select>

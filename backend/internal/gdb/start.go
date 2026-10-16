@@ -50,6 +50,10 @@ func Start() {
 	err = tab.AutoMigrate(&models.Host{})
 	check.IfError(err)
 
+	// Owner is never empty: older rows become Shared
+	err = db.Table("now").Where(`"OWNER" IS NULL OR "OWNER" = ''`).Update("OWNER", models.SharedOwner).Error
+	check.IfError(err)
+
 	tab = db.Table("history")
 	err = tab.AutoMigrate(&models.Host{})
 	check.IfError(err)

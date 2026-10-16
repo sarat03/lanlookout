@@ -177,6 +177,9 @@ func metaHost(c *gin.Context) {
 	}
 	if o, ok := c.GetQuery("owner"); ok {
 		host.Owner = strings.TrimSpace(o)
+		if host.Owner == "" || strings.EqualFold(host.Owner, models.SharedOwner) {
+			host.Owner = models.SharedOwner
+		}
 	}
 
 	gdb.Update("now", host)

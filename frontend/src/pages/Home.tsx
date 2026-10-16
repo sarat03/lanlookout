@@ -1,6 +1,6 @@
 import { createMemo, createResource, createSignal, For, Show } from "solid-js";
 import { apiGetEvents, apiNetStatus } from "../functions/api";
-import { bkpHosts, Event, Host, hostTypes, smartTypes } from "../functions/exports";
+import { bkpHosts, Event, Host, hostTypes, isShared } from "../functions/exports";
 
 // Types that tell us whether a person is home.
 const presenceTypes = ["phone", "watch"];
@@ -41,7 +41,8 @@ function Home() {
   });
 
   const all = () => bkpHosts();
-  const smart = createMemo(() => all().filter(h => !h.Owner && smartTypes.includes(h.Type)).sort(byName));
+  // Shared devices are the house's. Unreviewed ones wait in Needs attention instead.
+  const smart = createMemo(() => all().filter(h => isShared(h) && h.Known == 1).sort(byName));
   const newToday = createMemo(() => (events() ?? []).filter(e => e.Kind === "new" && e.Date.startsWith(today())).length);
 
   // Offline smart-home gear, offline watched devices, and unreviewed devices on the network.
@@ -52,14 +53,14 @@ function Home() {
       const since = ev?.Kind === "offline" ? "offline since " + when(ev.Date) : "offline";
       if (h.Known != 1 && h.Now == 1) out.push({ host: h, why: "new device, not reviewed yet", tag: "new" });
       else if (h.Now != 1 && h.Watch == 1) out.push({ host: h, why: since, tag: "watched" });
-      else if (h.Now != 1 && !h.Owner && smartTypes.includes(h.Type)) out.push({ host: h, why: since, tag: "smart home" });
+      else if (h.Now != 1 && h.Known == 1 && isShared(h)) out.push({ host: h, why: since, tag: "smart home" });
     }
     return out.sort((a, b) => byName(a.host, b.host));
   });
 
   const members = createMemo(() => {
     const m = new Map<string, Host[]>();
-    for (const h of all()) if (h.Owner) m.set(h.Owner, [...(m.get(h.Owner) || []), h]);
+    for (const h of all()) if (!isShared(h)) m.set(h.Owner, [...(m.get(h.Owner) || []), h]);
     return [...m.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([name, hs]) => {
       hs.sort(byName);
       const tracked = hs.filter(h => presenceTypes.includes(h.Type));
@@ -95,7 +96,7 @@ function Home() {
       <header class="wy-head">
         <div>
           <h1>Home</h1>
-          <div class="wy-sub">Health, people, then devices. Set the Owner on a device to assign it.</div>
+          <div class="wy-sub">Health, people, then devices. A device's Owner puts it under a person or in Smart home (Shared).</div>
         </div>
       </header>
 
@@ -152,7 +153,7 @@ function Home() {
 
       <section class="wy-card" aria-label="Smart home">
         <h2><i class="bi bi-house-gear" aria-hidden="true"></i> Smart home <span class="wy-muted">{online(smart())}/{smart().length} online</span></h2>
-        <Show when={smart().length} fallback={<p class="wy-muted">No smart-home devices yet. Set a device's type to plug, light, camera, etc.</p>}>
+        <Show when={smart().length} fallback={<p class="wy-muted">No shared devices yet. Set a device's Owner to Shared to add it here.</p>}>
           <div class="wy-chips"><For each={smart()}>{(h) => <Chip host={h}/>}</For></div>
         </Show>
       </section>

@@ -93,3 +93,25 @@ func TestScanKeepsConcurrentEdits(t *testing.T) {
 		t.Errorf("got %+v", h)
 	}
 }
+
+// Owner is never empty: new devices start Shared, and old empty rows are migrated.
+func TestOwnerDefaultsShared(t *testing.T) {
+	conf.AppConfig = models.Conf{UseDB: "sqlite", DBPath: t.TempDir() + "/t.db", OfflineAfter: 2}
+	gdb.Start()
+
+	compareHosts(map[string]models.Host{"aa:bb:cc:00:00:03": {Mac: "aa:bb:cc:00:00:03", IP: "10.0.0.8"}})
+	gdb.Update("now", models.Host{Mac: "aa:bb:cc:00:00:04", Owner: "Sarat"})
+	hosts, _ := gdb.Select("now")
+	if len(hosts) != 2 {
+		t.Fatalf("want 2 hosts, got %d", len(hosts))
+	}
+	for _, h := range hosts {
+		want := models.SharedOwner
+		if h.Mac == "aa:bb:cc:00:00:04" {
+			want = "Sarat"
+		}
+		if h.Owner != want {
+			t.Fatalf("%s: owner %q, want %q", h.Mac, h.Owner, want)
+		}
+	}
+}
