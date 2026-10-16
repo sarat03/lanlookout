@@ -4,7 +4,8 @@ All notable changes to this project are documented in this file.
 ## [v0.1.6] - 2026-10-16
 ### Changed
 - Home is now the start page (`/`); the hosts table moved to `/hosts`
-- Home layout is compact: member cards tile side by side and device lists flow into columns
+- New Home layout: health tiles (devices online, offline, new today, internet), a Needs attention list, a card per person with Home/Away from their phone or watch, and Smart home as compact chips
+- Person cards open on click to show their devices; cards with something offline start open
 
 ## [v0.1.5] - 2026-10-15
 ### Added
