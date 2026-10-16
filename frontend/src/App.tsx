@@ -22,7 +22,8 @@ function App() {
   return (
     <div class="wy-app">
       <Router root={(props) => <><Header></Header><main class="wy-main">{props.children}</main></>}>
-          <Route path="/" component={Body}/>
+          <Route path="/" component={Home}/>
+          <Route path="/hosts" component={Body}/>
           <Route path="/config" component={Config}/>
           <Route path="/home" component={Home}/>
           <Route path="/history" component={History}/>

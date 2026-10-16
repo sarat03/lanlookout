@@ -64,6 +64,9 @@ type Conf struct {
 }
 
 // Host - one host
+// SharedOwner - Owner of devices that belong to the whole house
+const SharedOwner = "Shared"
+
 type Host struct {
 	ID    int    `gorm:"column:ID;primaryKey"`
 	Name  string `gorm:"column:NAME"`
@@ -75,10 +78,10 @@ type Host struct {
 	Date  string `gorm:"column:DATE"`
 	Known int    `gorm:"column:KNOWN"`
 	Now   int    `gorm:"column:NOW"`
-	Watch int    `gorm:"column:WATCH"` // 1 = notify on offline/online
-	Type  string `gorm:"column:TYPE"`  // phone, laptop, tv...
-	Tags  string `gorm:"column:TAGS"`  // comma separated
-	Owner string `gorm:"column:OWNER"` // household member, empty = shared
+	Watch int    `gorm:"column:WATCH"`                // 1 = notify on offline/online
+	Type  string `gorm:"column:TYPE"`                 // phone, laptop, tv...
+	Tags  string `gorm:"column:TAGS"`                 // comma separated
+	Owner string `gorm:"column:OWNER;default:Shared"` // household member or SharedOwner
 	// Filled in automatically
 	Model    string `gorm:"column:MODEL"`    // e.g. "Chromecast", "MacBookPro18,1"
 	OS       string `gorm:"column:OS"`       // e.g. "iOS / macOS", "Android", "Windows"

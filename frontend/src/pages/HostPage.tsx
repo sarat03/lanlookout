@@ -39,7 +39,7 @@ function HostPage() {
 
   return (
     <>
-    <a class="wy-link" href="/" style={{ display: "inline-flex", "align-items": "center", gap: "6px", "min-height": "44px", "font-weight": 500 }}>
+    <a class="wy-link" href="/hosts/" style={{ display: "inline-flex", "align-items": "center", gap: "6px", "min-height": "44px", "font-weight": 500 }}>
       <i class="bi bi-chevron-left" aria-hidden="true"></i>All hosts
     </a>
 

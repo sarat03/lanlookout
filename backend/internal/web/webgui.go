@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/sarat03/lanlookout/internal/api"
 	"github.com/sarat03/lanlookout/internal/check"
 	"github.com/sarat03/lanlookout/internal/conf"
 	"github.com/sarat03/lanlookout/internal/prometheus"
-	"github.com/gin-gonic/gin"
 )
 
 // templFS - html templates
@@ -57,6 +57,7 @@ func Gui() {
 	router.GET("/", indexHandler)          // index.go
 	router.GET("/config", indexHandler)    // index.go
 	router.GET("/home", indexHandler)      // index.go
+	router.GET("/hosts", indexHandler)     // index.go
 	router.GET("/history", indexHandler)   // index.go
 	router.GET("/internet", indexHandler)  // index.go
 	router.GET("/security", indexHandler)  // index.go
