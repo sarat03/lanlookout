@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project are documented in this file.
 
-## [v0.2.0] - 2026-10-15
+## [v0.1.5] - 2026-10-15
 ### Added
 - Household members: Owner on each device, Home page with a card per member and a shared Smart home card
 - Pickers instead of typing: Owner dropdown, tag chips, interface checkboxes (new `/api/ifaces`)
