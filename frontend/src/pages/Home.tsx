@@ -97,7 +97,7 @@ function Home() {
       <header class="wy-head">
         <div>
           <h1>Home</h1>
-          <div class="wy-sub">Health, people, then devices. A device's Owner puts it under a person or in Smart home (Shared).</div>
+          <div class="wy-sub">Who's home and what needs attention.</div>
         </div>
       </header>
 
