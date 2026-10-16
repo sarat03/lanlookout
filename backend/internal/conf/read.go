@@ -38,6 +38,7 @@ func read(path string) (config models.Conf) {
 	viper.SetDefault("ALERT_DNS", true)
 	viper.SetDefault("QUIET_FROM", "")
 	viper.SetDefault("QUIET_TO", "")
+	viper.SetDefault("MEMBER_ORDER", "")
 
 	viper.SetDefault("IDENTIFY_ENABLE", true)
 	viper.SetDefault("NET_CHECK_MIN", 5)
@@ -93,6 +94,7 @@ func read(path string) (config models.Conf) {
 	config.AlertDNS = viper.GetBool("ALERT_DNS")
 	config.QuietFrom = viper.GetString("QUIET_FROM")
 	config.QuietTo = viper.GetString("QUIET_TO")
+	config.MemberOrder = viper.GetString("MEMBER_ORDER")
 
 	config.IdentifyEnable = viper.GetBool("IDENTIFY_ENABLE")
 	config.NetCheckMin = viper.GetInt("NET_CHECK_MIN")

@@ -34,6 +34,8 @@ type Conf struct {
 	AlertDNS     bool   // device contacted a threat-list domain
 	QuietFrom    string // "22:00", empty = no quiet hours
 	QuietTo      string // "07:00"
+	// Home page
+	MemberOrder string // member names, comma separated, in display order
 	// Device identification (mDNS, SSDP, DHCP)
 	IdentifyEnable bool
 	// Internet health

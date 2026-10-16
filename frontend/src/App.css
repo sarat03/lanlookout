@@ -227,3 +227,5 @@ textarea.wy-input { padding: 10px 12px; }
 .wy-devrows a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wy-more { all: unset; cursor: pointer; font-size: 13px; color: var(--wy-accent); align-self: flex-start; }
 .wy-more { all: unset; cursor: pointer; font-size: 13px; color: var(--wy-accent); align-self: flex-start; }
+.wy-avatar { cursor: grab; touch-action: none; user-select: none; }
+.wy-person.dragging { opacity: .6; outline: 2px dashed var(--wy-accent); }

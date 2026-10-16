@@ -63,6 +63,7 @@ export interface Conf {
 	AlertIP:      boolean;
 	QuietFrom:    string;
 	QuietTo:      string;
+	MemberOrder:  string;
 	AlertNet:     boolean;
 	AlertSec:     boolean;
 	AlertDNS:     boolean;
@@ -135,6 +136,7 @@ export const emptyConf:Conf = {
 	AlertIP: true,
 	QuietFrom: "",
 	QuietTo: "",
+	MemberOrder: "",
 	AlertNet: true,
 	AlertSec: true,
 	AlertDNS: true,

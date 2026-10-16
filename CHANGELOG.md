@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 ### Changed
 - Home on phones: the four summary tiles sit in a 2×2 grid instead of one per row
 - Home subtitle shortened to one line
+### Added
+- Reorder people on Home by dragging their circle (mouse or touch). The order is saved in the config (`MEMBER_ORDER`), so it is the same on every device; new members go last
 
 ## [v0.1.7] - 2026-10-16
 ### Fixed
