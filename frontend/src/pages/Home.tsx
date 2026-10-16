@@ -19,13 +19,14 @@ function when(date?: string) {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " " + t;
 }
 
-function Chip(_props: { host: Host }) {
+function DeviceRow(_props: { host: Host }) {
   const h = _props.host;
   return (
-    <a class={"wy-chip" + (h.Now == 1 ? " on" : "")} href={"/host/" + h.ID} title={h.Now == 1 ? "Online" : "Offline"}>
-      <Show when={hostTypes[h.Type]}><i class={"bi " + hostTypes[h.Type]} aria-hidden="true"></i></Show>
-      <span>{label(h)}</span>
-    </a>
+    <li>
+      <span class={"wy-dot" + (h.Now == 1 ? " on" : "")} title={h.Now == 1 ? "Online" : "Offline"}></span>
+      <Show when={hostTypes[h.Type]}><i class={"bi " + hostTypes[h.Type] + " wy-muted"} aria-hidden="true"></i></Show>
+      <a class="wy-link" href={"/host/" + h.ID}>{label(h)}</a>
+    </li>
   );
 }
 
@@ -145,7 +146,7 @@ function Home() {
               <i class={"bi wy-muted " + (isOpen(m) ? "bi-chevron-up" : "bi-chevron-down")} aria-hidden="true"></i>
             </button>
             <Show when={isOpen(m)}>
-              <div class="wy-chips"><For each={m.hosts}>{(h) => <Chip host={h}/>}</For></div>
+              <ul class="wy-devrows"><For each={m.hosts}>{(h) => <DeviceRow host={h}/>}</For></ul>
             </Show>
           </section>
         }</For>
@@ -154,7 +155,7 @@ function Home() {
       <section class="wy-card" aria-label="Smart home">
         <h2><i class="bi bi-house-gear" aria-hidden="true"></i> Smart home <span class="wy-muted">{online(smart())}/{smart().length} online</span></h2>
         <Show when={smart().length} fallback={<p class="wy-muted">No shared devices yet. Set a device's Owner to Shared to add it here.</p>}>
-          <div class="wy-chips"><For each={smart()}>{(h) => <Chip host={h}/>}</For></div>
+          <ul class="wy-devrows wy-devcols"><For each={smart()}>{(h) => <DeviceRow host={h}/>}</For></ul>
         </Show>
       </section>
     </>

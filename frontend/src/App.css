@@ -216,10 +216,9 @@ textarea.wy-input { padding: 10px 12px; }
 .wy-person-text strong { font-size: 16px; }
 .wy-avatar { width: 48px; height: 48px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 20px; font-weight: 700; border: 3px solid var(--wy-line); }
 .wy-avatar.home { border-color: var(--wy-on); background: color-mix(in srgb, var(--wy-on) 15%, transparent); }
-.wy-person .wy-chips { padding: 0 16px 14px; }
-.wy-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.wy-chip { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 10px; border-radius: 999px; font-size: 13px; text-decoration: none; color: var(--wy-muted); border: 1px dashed var(--wy-line); }
-.wy-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wy-chip.on { color: var(--wy-ink); border: 1px solid color-mix(in srgb, var(--wy-on) 55%, transparent); background: var(--wy-surface); }
-.wy-chip:hover { border-color: var(--wy-accent); }
+.wy-devrows { list-style: none; margin: 0; padding: 0 16px 14px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.wy-devrows li { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.wy-devcols { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px 16px; padding: 0; }
+.wy-devrows a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wy-more { all: unset; cursor: pointer; font-size: 13px; color: var(--wy-accent); align-self: flex-start; }
 .wy-more { all: unset; cursor: pointer; font-size: 13px; color: var(--wy-accent); align-self: flex-start; }
