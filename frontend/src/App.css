@@ -229,3 +229,4 @@ textarea.wy-input { padding: 10px 12px; }
 .wy-more { all: unset; cursor: pointer; font-size: 13px; color: var(--wy-accent); align-self: flex-start; }
 .wy-avatar { cursor: grab; touch-action: none; user-select: none; }
 .wy-person.dragging { opacity: .6; outline: 2px dashed var(--wy-accent); }
+.wy-grip { cursor: grab; touch-action: none; user-select: none; color: var(--wy-muted); font-size: 18px; margin: -8px -8px -8px -6px; padding: 8px 2px; }

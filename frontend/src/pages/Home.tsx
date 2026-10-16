@@ -97,9 +97,12 @@ function Home() {
   const dragStart = (e: PointerEvent, name: string) => {
     if (e.button !== 0) return;
     e.preventDefault();
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     setDragging(name);
     dragged = false;
+    // On the window: reordering re-renders the card, so the handle under the finger goes away.
+    window.addEventListener("pointermove", dragMove);
+    window.addEventListener("pointerup", dragEnd);
+    window.addEventListener("pointercancel", dragEnd);
   };
   const dragMove = (e: PointerEvent) => {
     const name = dragging();
@@ -114,9 +117,13 @@ function Home() {
     dragged = true;
   };
   const dragEnd = () => {
+    window.removeEventListener("pointermove", dragMove);
+    window.removeEventListener("pointerup", dragEnd);
+    window.removeEventListener("pointercancel", dragEnd);
     if (!dragging()) return;
     setDragging("");
     if (!dragged) return;
+    setTimeout(() => dragged = false); // after the click that ends the drag, if any
     setAppConfig({ ...appConfig(), MemberOrder: order().join(",") });
     apiSaveMemberOrder(order());
   };
@@ -172,8 +179,10 @@ function Home() {
         <For each={members()} fallback={<section class="wy-card"><p class="wy-muted">No members yet. Set an Owner on a device to add someone.</p></section>}>{(m) =>
           <section class={"wy-card wy-person" + (isOpen(m) ? " open" : "") + (dragging() === m.name ? " dragging" : "")} data-member={m.name}>
             <button type="button" class="wy-person-head" aria-expanded={isOpen(m)} onClick={() => toggle(m)}>
+              <i class="bi bi-grip-vertical wy-grip" title="Drag to reorder" aria-hidden="true"
+                onPointerDown={e => dragStart(e, m.name)}></i>
               <span class={"wy-avatar" + (m.home ? " home" : "")} title="Drag to reorder"
-                onPointerDown={e => dragStart(e, m.name)} onPointerMove={dragMove} onPointerUp={dragEnd} onPointerCancel={dragEnd}>{m.name.charAt(0).toUpperCase()}</span>
+                onPointerDown={e => dragStart(e, m.name)}>{m.name.charAt(0).toUpperCase()}</span>
               <span class="wy-person-text">
                 <strong>{m.name}</strong>
                 <span>
